@@ -59,19 +59,51 @@ class ViewController: UIViewController {
     
     private func start() {
         let startTime = Date()
+        var result: String?
         let concurrentQueue = DispatchQueue(label: "concurrentQueue",
                                             qos: .userInitiated,
-                                            attributes: .concurrent,
-                                            autoreleaseFrequency: .workItem)
+                                            attributes: .concurrent)
+        let bruteForceGroup = DispatchGroup()
         
-        concurrentQueue.async {
-            let result = self.bruteForce(startString: "0000", endString: "ZZZZ")
-            
-            DispatchQueue.main.async {
-                self.stop(password: result ?? "Error", startTime: startTime)
-                self.indicator.isHidden = true
+        concurrentQueue.async(group: bruteForceGroup) {
+            let res = self.bruteForce(startString: "0000", endString: "9ZZZ")
+            if res != nil {
+                result = res
+                DispatchQueue.main.async {
+                    self.stop(password: result ?? "Error", startTime: startTime)
+                    self.indicator.isHidden = true
+                }
             }
+            print("result 1 \(res)")
         }
+        
+        concurrentQueue.async(group: bruteForceGroup) {
+            let res = self.bruteForce(startString: "aZZZ", endString: "zZZZ")
+            if res != nil {
+                result = res
+                DispatchQueue.main.async {
+                    self.stop(password: result ?? "Error", startTime: startTime)
+                    self.indicator.isHidden = true
+                }
+                
+            }
+            print("result 2 \(res)")
+        }
+        
+        
+        concurrentQueue.async(group: bruteForceGroup) {
+            let res = self.bruteForce(startString: "AZZZ", endString: "ZZZZ")
+            if res != nil {
+                
+                result = res
+                DispatchQueue.main.async {
+                    self.stop(password: result ?? "Error", startTime: startTime)
+                    self.indicator.isHidden = true
+                }
+                
+            }
+            print("result 3 \(res)")
+        }        
     }
     
     // Возвращает подобранный пароль
