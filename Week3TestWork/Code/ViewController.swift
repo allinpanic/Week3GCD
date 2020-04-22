@@ -59,51 +59,56 @@ class ViewController: UIViewController {
     
     private func start() {
         let startTime = Date()
-        var result: String?
-        let concurrentQueue = DispatchQueue(label: "concurrentQueue",
-                                            qos: .userInitiated,
-                                            attributes: .concurrent)
-        let bruteForceGroup = DispatchGroup()
+
+        let op1 = BruteForceOperation(startString: "0000", endString: "dZZZ", password: password)
+        let op2 = BruteForceOperation(startString: "e000", endString: "sZZZ", password: password)
+        let op3 = BruteForceOperation(startString: "t000", endString: "HZZZ", password: password)
+        let op4 = BruteForceOperation(startString: "I000", endString: "ZZZZ", password: password)
         
-        concurrentQueue.async(group: bruteForceGroup) {
-            let res = self.bruteForce(startString: "0000", endString: "9ZZZ")
-            if res != nil {
-                result = res
-                DispatchQueue.main.async {
-                    self.stop(password: result ?? "Error", startTime: startTime)
+        let findPasswordOperationQueue = OperationQueue()
+        
+        op1.completionBlock = {
+            if let result = op1.result {
+                findPasswordOperationQueue.cancelAllOperations()
+                OperationQueue.main.addOperation {
+                    self.stop(password: result, startTime: startTime)
                     self.indicator.isHidden = true
                 }
             }
-            print("result 1 \(res)")
         }
         
-        concurrentQueue.async(group: bruteForceGroup) {
-            let res = self.bruteForce(startString: "aZZZ", endString: "zZZZ")
-            if res != nil {
-                result = res
-                DispatchQueue.main.async {
-                    self.stop(password: result ?? "Error", startTime: startTime)
+        op2.completionBlock = {
+            if let result = op2.result {
+                findPasswordOperationQueue.cancelAllOperations()
+                OperationQueue.main.addOperation {
+                    self.stop(password: result, startTime: startTime)
                     self.indicator.isHidden = true
                 }
-                
             }
-            print("result 2 \(res)")
         }
         
-        
-        concurrentQueue.async(group: bruteForceGroup) {
-            let res = self.bruteForce(startString: "AZZZ", endString: "ZZZZ")
-            if res != nil {
-                
-                result = res
-                DispatchQueue.main.async {
-                    self.stop(password: result ?? "Error", startTime: startTime)
+        op3.completionBlock = {
+            if let result = op3.result {
+                findPasswordOperationQueue.cancelAllOperations()
+                OperationQueue.main.addOperation {
+                    self.stop(password: result, startTime: startTime)
                     self.indicator.isHidden = true
                 }
-                
             }
-            print("result 3 \(res)")
-        }        
+        }
+        
+        op4.completionBlock = {
+            if let result = op4.result {
+                findPasswordOperationQueue.cancelAllOperations()
+                OperationQueue.main.addOperation {
+                    self.stop(password: result, startTime: startTime)
+                    self.indicator.isHidden = true
+                }
+            }
+        }
+        
+        findPasswordOperationQueue.addOperations([op1, op2, op3, op4], waitUntilFinished: false)
+        
     }
     
     // Возвращает подобранный пароль
